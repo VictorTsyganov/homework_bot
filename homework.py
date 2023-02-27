@@ -122,7 +122,6 @@ def main():
             homework = check_response(response)
             if not len(homework):
                 logging.debug('Статус не обновлен')
-                send_message(bot, 'Статус не обновлен')
             else:
                 homework_status = parse_status(homework[0])
                 if current_status == homework_status:
