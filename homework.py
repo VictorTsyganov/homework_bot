@@ -7,37 +7,9 @@ import requests
 import telegram
 from dotenv import load_dotenv
 
+import exceptions
+
 load_dotenv()
-
-
-class GlobalsError(Exception):
-    """Ошибка, отсутствуют глобальные переменные."""
-
-    pass
-
-
-class EndpointAnswerException(Exception):
-    """Ошибка, отсутствует ответ от Endpoint."""
-
-    pass
-
-
-class CheckResponseException(Exception):
-    """Ошибка, не корректный ответ от Endpoint."""
-
-    pass
-
-
-class MessageSendingError(Exception):
-    """Ошибка, сообщение не отправлено."""
-
-    pass
-
-
-class ParseStatusException(Exception):
-    """Ошибка, не корректный статус домашней работы."""
-
-    pass
 
 
 PRACTICUM_TOKEN = os.getenv('PRACTICUM_TOKEN')
@@ -72,7 +44,7 @@ def send_message(bot, message):
         bot.send_message(chat_id=TELEGRAM_CHAT_ID, text=message)
     except Exception as error:
         logging.error(f'Ошибка отправки сообщения: {error}')
-        raise MessageSendingError(
+        raise exceptions.MessageSendingError(
             f'Сообщение {message} не было отправлено. Смотри журнал ошибок.')
     logging.debug(f'Сообщение "{message}" отправлено.')
 
@@ -85,15 +57,15 @@ def get_api_answer(timestamp):
         response = requests.get(ENDPOINT, headers=HEADERS, params=payload)
     except Exception as error:
         logging.error(f'Эндпоинт API не доступен: {error}')
-        raise EndpointAnswerException(massage)
+        raise exceptions.EndpointAnswerException(massage)
     if response.status_code != HTTPStatus.OK:
         logging.error(f'Код ответа API: {response.status_code}')
-        raise EndpointAnswerException(massage)
+        raise exceptions.EndpointAnswerException(massage)
     try:
         return response.json()
     except Exception as error:
         logging.error(f'Ошибка преобразования к формату json: {error}')
-        raise EndpointAnswerException(massage)
+        raise exceptions.EndpointAnswerException(massage)
 
 
 def check_response(response):
@@ -104,7 +76,7 @@ def check_response(response):
         raise TypeError(message)
     if 'homeworks' not in response:
         logging.error('Ключ homeworks отсутствует в словаре.')
-        raise CheckResponseException(message)
+        raise exceptions.CheckResponseException(message)
     homeworks_list = response['homeworks']
     if type(homeworks_list) != list:
         logging.error(
@@ -130,13 +102,13 @@ def parse_status(homework):
     else:
         logging.error(
             f'Передан неожиданный статус домашней работы "{homework_status}"')
-        raise ParseStatusException(message)
+        raise exceptions.ParseStatusException(message)
 
 
 def main():
     """Основная логика работы бота."""
     if not check_tokens():
-        raise GlobalsError(
+        raise exceptions.GlobalsError(
             'Ошибка глобальной переменной. Смотри журнал ошибок.')
 
     bot = telegram.Bot(token=TELEGRAM_TOKEN)
