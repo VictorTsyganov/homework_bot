@@ -16,12 +16,6 @@ class CheckResponseException(Exception):
     pass
 
 
-class MessageSendingError(Exception):
-    """Error, message not sent."""
-
-    pass
-
-
 class ParseStatusException(Exception):
     """Error, incorrect homework status."""
 
